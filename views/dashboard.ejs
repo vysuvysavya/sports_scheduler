@@ -3,83 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="csrf-token" content="<%= csrfToken%>">
-    <meta name="role" content="<%= role%>">
+    <meta name="csrf-token" content="<%= csrfToken %>">
+    <meta name="role" content="<%= role %>">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="./css/styles.css" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <script>
-        var token=document.querySelector('meta[name="csrf-token"]').getAttribute("content");
-        var role=document.querySelector('meta[name="role"]').getAttribute("content");
-        function control(){
-            if(role!='admin'){
-                document.getElementById('admin-controls').style.display='none';
+        var token = document.querySelector('meta[name="csrf-token"]').getAttribute("content");
+        var role = document.querySelector('meta[name="role"]').getAttribute("content");
+
+        function control() {
+            if (role !== 'admin') {
+                document.getElementById('admin-controls').style.display = 'none';
             }
         }
-        function sport(title){
-            // sessionStorage.setItem('sport',title);
+
+        function sport(title) {
             window.location.replace(`/sport/${title}`);
         }
-        function session(id){
-            window.location.replace("/session/"+id);
+
+        function session(id) {
+            window.location.replace("/session/" + id);
         }
     </script>
-    <title>Sports-Scheduler</title>
+    <title>Sports Scheduler</title>
 </head>
-<body onload="control()">
-    <div class="grid grid-cols-6">
-        <div class="col-start-3 col-span-2">
-            <form action="/signout" method="get">
-                <div class="inline-flex">
-                    <h1 class="p-2 text-4xl">Welcome <%=userName%>!</h1>
-                    <button type="submit" class="bg-green-600 text-white px-5 py-1.5 rounded font-medium mr-2 mb-2 absolute start-2/3">Sign out</button>
-                </div>
-            </form>
-            <a href="/changepassword" class="text-green-600 p-2">Change password</a>
-            <br>
-            <div id="admin-controls">
-                <a href="/createsport" class="text-green-600 p-2">Create a new sport</a><br>
-                <a href="/reports" class="text-green-600 p-2">View reports</a>
+<body onload="control()" class="bg-gradient-to-r from-blue-100 to-blue-200 text-gray-900 flex flex-col min-h-screen">
+    <%- include("header") %>
+
+    <!-- Navbar -->
+    <nav class="bg-gradient-to-r from-blue-500 to-green-500 p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="space-x-4">
+                <a href="/changepassword" class="text-white hover:underline">Change Password</a>
+                <a href="/createsport" class="text-white hover:underline" id="admin-controls">Create Sport</a>
+                <a href="/reports" class="text-white hover:underline" id="admin-controls">Reports</a>
+                <form action="/signout" method="get" class="inline">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg">Sign Out</button>
+                </form>
             </div>
-            <br>
-            <h1 class="p-2 text-2xl underline">You're upcoming sessions</h1><br>
-            <div>
-                <ul class="list-none">
-                    <%if(usersessions.length==0||usersessions==null){%>
+        </div>
+    </nav>
+
+    <div class="container mx-auto mt-10 flex-grow">
+        <h1 class="text-4xl font-bold text-blue-900 text-center">Welcome, <%= userName %>!</h1>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-10 mt-10">
+            <!-- Upcoming Sessions Block -->
+            <div class="bg-white p-8 shadow-lg rounded-lg">
+                <h2 class="text-2xl font-semibold text-blue-900 underline mb-4">Your Upcoming Sessions</h2>
+                <ul>
+                    <% if (usersessions.length == 0 || usersessions == null) { %>
                         <li>
-                            <p class="p-2 text-lg">There are no sessions available, wanna create one?</p>
+                            <p class="text-lg text-gray-600">There are no sessions available, wanna create one?</p>
                         </li>
-                    <%} else{%>
-                    <%for(var i=0;i<usersessions.length; i++) {%>
-                    <li>
-                        <div class="flex w-fit my-2 px-2 py-1 items-center hover:bg-purple-50 rounded">
-                            <label class="ml-2 text-lg text-gray-600 cursor-pointer flex flex-col" onclick="session(`<%= usersessions[i].id %>`)">
-                                <span class="underline">Session <%=i+1%>:</span>
-                                <span class="ml-5">Date: <%=usersessions[i].date%></span>
-                                <span class="ml-5">Time: <%=usersessions[i].time%></span>
-                                <span class="ml-5">Location: <%=usersessions[i].location%></span>
-                                <span class="ml-5 text-red-700"><%=usersessions[i].additional%> slots left!</span>
-                            </label>
-                        </div>
-                    </li>
-                    <%} }%>
+                    <% } else { %>
+                        <% for (var i = 0; i < usersessions.length; i++) { %>
+                            <li>
+                                <div class="flex my-2 p-4 items-center hover:bg-gray-100 rounded-lg cursor-pointer" onclick="session('<%= usersessions[i].id %>')">
+                                    <label class="ml-2 text-lg text-gray-600 cursor-pointer flex flex-col" onclick="session(`<%= usersessions[i].id %>`)">
+                                    <div class="ml-2 text-lg text-gray-700">
+                                        <span class="font-semibold">Session <%= i + 1 %>:</span>
+                                        <span class="ml-5">Date: <%= usersessions[i].date %></span>
+                                        <span class="ml-5">Time: <%= usersessions[i].time %></span>
+                                        <span class="ml-5">Location: <%= usersessions[i].location %></span>
+                                        <span class="ml-5 text-red-600"><%= usersessions[i].additional %> slots left!</span>
+                                    </div>
+                                    </label>
+                                </div>
+                            </li>
+                        <% } %>
+                    <% } %>
                 </ul>
             </div>
-            <br>
-            <h1 class="p-2 text-2xl underline">Available Sports</h1><br>
-            <div>
-                <ul class="list-none">
-                    <%for(var i=0;i<sportslist.length; i++) {%>
-                    <li>
-                        <div class="flex w-fit my-2 px-2 py-1 items-center hover:bg-purple-50 rounded">
-                            <label class="ml-2 text-lg text-gray-600 cursor-pointer" onclick="sport(`<%= sportslist[i].title %>`)"><%= sportslist[i].title %></label>
-                        </div>
-                    </li>
-                    <%} %>
+
+            <!-- Available Sports Block -->
+            <div class="bg-white p-8 shadow-lg rounded-lg">
+                <h2 class="text-2xl font-semibold text-blue-900 underline mb-4">Available Sports</h2>
+                <ul class="space-y-4">
+                    <% for (var i = 0; i < sportslist.length; i++) { %>
+                        <li>
+                            <div class="bg-gray-100 p-4 rounded-lg shadow-md">
+                                <h3 class="text-xl font-semibold text-gray-800 mb-2"><%= sportslist[i].title %></h3>
+                                <ul class="space-y-2">
+                                    <% if (sportslist[i].sessions && sportslist[i].sessions.length > 0) { %>
+                                        <% for (var j = 0; j < sportslist[i].sessions.length; j++) { %>
+                                            <li class="flex justify-between items-center hover:bg-gray-200 p-2 rounded-lg cursor-pointer" onclick="session('<%= sportslist[i].sessions[j].id %>')">
+                                                <span class="text-gray-700"><%= sportslist[i].sessions[j].date %> - <%= sportslist[i].sessions[j].time %></span>
+                                                <span class="text-gray-500"><%= sportslist[i].sessions[j].location %></span>
+                                            </li>
+                                        <% } %>
+                                    <% } else { %>
+                                        <li class="text-gray-500">No sessions available for this sport</li>
+                                    <% } %>
+                                </ul>
+                            </div>
+                        </li>
+                    <% } %>
                 </ul>
             </div>
-            <%-include("notifications.ejs")%>
         </div>
     </div>
+
+    <%- include("notifications.ejs") %>
+    <%- include("footer") %>
+
 </body>
 </html>

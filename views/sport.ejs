@@ -5,18 +5,87 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="csrf-token" content="<%= csrfToken%>">
     <meta name="role" content="<%= role%>">
-    <meta name="userid" content="<%= userid%>">
-    <meta name="owner" content="<%= owner%>">
+    <meta name="players" content="<%=playerid%>">
+    <meta name="userid" content="<%=userid%>">
+    <meta name="sport" content="<%=sport%>">
+    <meta name="sportowner" content="<%=sportowner%>">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="./css/styles.css" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        var token=document.querySelector('meta[name="csrf-token"]').getAttribute("content");
         var role=document.querySelector('meta[name="role"]').getAttribute("content");
+        var players=document.querySelector('meta[name="players"]').getAttribute("content");
         var userid=document.querySelector('meta[name="userid"]').getAttribute("content");
-        var owner=document.querySelector('meta[name="owner"]').getAttribute("content");
-        function deleteTodo(id){
-            fetch(`/todos/${id}`,{
+        var token=document.querySelector('meta[name="csrf-token"]').getAttribute("content");
+        var sportowner=document.querySelector('meta[name="sportowner"]').getAttribute("content");
+        var sport=document.querySelector('meta[name="sport"]').getAttribute("content");
+
+        function removeplayer(sesid,id,play){
+            var playerlist=play.toString().split(",");
+            var playing="";
+            for(var i=0;i<playerlist.length;i++){
+                if(playerlist[i]!=id){
+                    playing+=playerlist[i]+',';
+                }
+            }
+            fetch(`/admin/session/${sesid}`,{
+                method:"put",
+                headers:{"Content-Type":"application/json"},
+                body: JSON.stringify({
+                    player:playing,
+                    "_csrf":token
+                })
+            }).then((res)=>{
+                if(res.ok){
+                    window.location.reload();
+                }
+            }).catch((err)=>console.log(err));
+        }
+        function join(sesid,id,play){
+            play+=','+id;
+            fetch(`/session/${sesid}`,{
+                method:"put",
+                headers:{"Content-Type":"application/json"},
+                body: JSON.stringify({
+                    type:"join",
+                    session:sesid,
+                    player:play,
+                    "_csrf":token
+                })
+            }).then((res)=>{
+                if(res.ok){
+                    window.location.reload();
+                }
+            }).catch((err)=>console.log(err));
+        }
+        function notjoining(sesid,id,play){
+            var playerlist=play.toString().split(",");
+            var playing="";
+            for(var i=0;i<playerlist.length;i++){
+                if(playerlist[i]!=id){
+                    playing+=playerlist[i]+',';
+                }
+            }
+            fetch(`/session/${sesid}`,{
+                method:"put",
+                headers:{"Content-Type":"application/json"},
+                body: JSON.stringify({
+                    type:"notjoin",
+                    session:sesid,
+                    player:playing,
+                    "_csrf":token
+                })
+            }).then((res)=>{
+                if(res.ok){
+                    window.location.reload();
+                }
+            }).catch((err)=>console.log(err));
+        }
+        function editsession(sesid){
+            window.location.href="/edit/"+sesid;
+        }
+        function removesession(sesid){
+            fetch(`/session/${sesid}`,{
                 method:"delete",
                 headers:{"Content-Type":"application/json"},
                 body: JSON.stringify({
@@ -26,72 +95,65 @@
                 if(res.ok){
                     window.location.reload();
                 }
-            }).catch((error)=>console.log(error));
+            }).catch((err)=>console.log(err));
         }
-        function session(id){
-            window.location.replace("/session/"+id);
-        }
-        function deleteSport(sport){
-            fetch(`/sport/${sport}`,{
-                method:"delete",
-                headers:{"Content-Type":"application/json"},
-                body: JSON.stringify({
-                    "_csrf":token
-                })
-            }).then((res)=>{
-                if(res.ok){
-                    window.location.replace("/home");
-                }
-            }).catch((error)=>console.log(error));
-        }
-        function creatorop(){
-            if(userid!=owner){
-                document.getElementById('creator').style.display='none';
-            }
+        function createemail(sesid){
+            window.location.href="/email/"+sesid;
         }
     </script>
-    <title><%=sport%></title>
+    <title><%= title%></title>
 </head>
-<body onload="creatorop()">
-    <div class="grid grid-cols-6">
-        <div class="col-start-3 col-span-2">
-            <div class="inline-flex">
-                <h1 class="p-2 text-4xl" id="name"><%=sport%></h1>
-                <div class="p-4 absolute start-2/3" id="creator">
-                    <a class="text-green-600 p-4 underline cursor-pointer" onclick="deleteSport(`<%=sport%>`)">Delete Sport</a>
-                </div>
-            </div>
-            <h1 class="p-2 text-2xl underline">Sessions</h1>
+<body class="bg-gradient-to-r from-blue-100 to-blue-200 text-gray-900 flex flex-col min-h-screen">
+    <%- include("header") %>
+
+    <div class="container mx-auto mt-10 flex-grow flex justify-center items-center">
+        <div class="w-full max-w-3xl bg-white shadow-lg rounded-lg p-8">
+            <h1 class="text-4xl text-center text-blue-900 mb-4"><%=sport%></h1>
             <div>
-                <ul class="list-none">
-                    <%if(ses.length==0||ses==null){%>
-                        <li>
-                            <p class="p-2 text-lg">There are no sessions available, wanna create one?</p>
-                        </li>
-                    <%} else{%>
-                    <%for(var i=0;i<ses.length; i++) {%>
-                    <li>
-                        <div class="flex w-fit my-2 px-2 py-1 items-center hover:bg-purple-50 rounded">
-                            <label class="ml-2 text-lg text-gray-600 cursor-pointer flex flex-col" onclick="session(`<%= ses[i].id %>`)">
-                                <span class="underline">Session <%=i+1%>:</span>
-                                <span class="ml-5">Date: <%=ses[i].date%></span>
-                                <span class="ml-5">Time: <%=ses[i].time%></span>
-                                <span class="ml-5">Location: <%=ses[i].location%></span>
-                                <span class="ml-5 text-red-700"><%=ses[i].additional%> slots left!</span>
-                            </label>
-                        </div>
-                    </li>
-                    <%} }%>
-                </ul>
-                <div class="flex flex-col">
-                    <a href='/createsession/<%=sport%>' class="text-green-600 p-2 underline">Create Session</a>
-                    <a href='/sport/<%=sport%>/report' class="text-green-600 p-2 underline">View Report</a>
-                </div>
+                <table class="w-full table-auto text-center border-collapse border border-blue-900 mb-4">
+                    <thead class="bg-blue-900 text-white">
+                        <tr>
+                            <th class="border border-blue-900 text-white p-4">Session id</th>
+                            <th class="border border-blue-900 text-white p-4">Date</th>
+                            <th class="border border-blue-900 text-white p-4">Time</th>
+                            <th class="border border-blue-900 text-white p-4">Location</th>
+                            <th class="border border-blue-900 text-white p-4">Join/No join</th>
+                            <th class="border border-blue-900 text-white p-4">Join</th>
+                            <th class="border border-blue-900 text-white p-4">Not join</th>
+                            <th class="border border-blue-900 text-white p-4">Remove</th>
+                            <th class="border border-blue-900 text-white p-4">Email</th>
+                            <th class="border border-blue-900 text-white p-4">Edit</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-900">
+                        <%for (let i=0;i<sport.length;i++){%>
+                        <tr>
+                            <td class="border border-blue-900 p-4"><%=sport[i].id%></td>
+                            <td class="border border-blue-900 p-4"><%=sport[i].date%></td>
+                            <td class="border border-blue-900 p-4"><%=sport[i].time%></td>
+                            <td class="border border-blue-900 p-4"><%=sport[i].location%></td>
+                            <td class="border border-blue-900 p-4"><%=sport[i].additional%></td>
+                            <% if (role=="Owner" || players.includes(userid)){%>
+                            <%if (sport[i].players.includes(userid)){%>
+                            <td class="border border-blue-900 p-4" onclick="notjoining('<%=sport[i]._id%>','<%=userid%>','<%=sport[i].players%>')">Do not join</td>
+                            <%} else {%>
+                            <td class="border border-blue-900 p-4" onclick="join('<%=sport[i]._id%>','<%=userid%>','<%=sport[i].players%>')">Join</td>
+                            <%}}%>
+                            <% if (role=="Owner" || players.includes(userid)){%>
+                            <td class="border border-blue-900 p-4" onclick="removeplayer('<%=sport[i]._id%>','<%=userid%>','<%=sport[i].players%>')">Remove</td>
+                            <%}%>
+                            <% if (role=="Owner"){%>
+                            <td class="border border-blue-900 p-4" onclick="createemail('<%=sport[i]._id%>')">Email</td>
+                            <td class="border border-blue-900 p-4" onclick="editsession('<%=sport[i]._id%>')">Edit</td>
+                            <td class="border border-blue-900 p-4" onclick="removesession('<%=sport[i]._id%>')">Remove</td>
+                            <%}}%>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
-            <br>
-            <a href='/home' class="text-green-600">Return to home page</a>
-            <%-include("notifications.ejs")%>
         </div>
     </div>
+
+    <%- include("footer") %>
 </body>
 </html>

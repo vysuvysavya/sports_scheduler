@@ -1,7 +1,5 @@
 const express = require("express");
 const app = express();
-const csrf = require('csurf');
-
 const { Sports,User,Sportname } = require("./models");
 const bodyParser = require("body-parser");
 const path = require("path");
@@ -17,11 +15,9 @@ const { request } = require("http");
 const { resourceUsage } = require("process");
 app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser("Sports scheduler"));
+app.use(cookieParser("todo application"));
 app.use(csurf("this_should_be_32_character_long",["POST","PUT","DELETE"]));
 app.set("view engine", "ejs");
-const csrfProtection = csrf({ cookie: true });
-app.use(csrfProtection);
 
 const saltRounds=10;
 
@@ -38,23 +34,12 @@ const tomorrow = formattedDate(
   new Date(new Date().setDate(dateToday.getDate() + 1))
 );
 
-const { sequelize } = require('./models');
-
-sequelize.sync({ force: false }).then(() => {
-  console.log('Database synchronized');
-}).catch((err) => {
-  console.error('Failed to synchronize database:', err);
-});
-
-
 app.use(express.static(path.join(__dirname, "public")));
 app.set("views", path.join(__dirname, "views"));
 app.use(flash());
 
 app.use(session({
   secret:"the-key-to-future-login-lies-here-84482828282",
-  resave: false,
-  saveUninitialized: false,
   cookie:{
     maxAge: 24*60*60*1000
   }
@@ -67,34 +52,6 @@ app.use(function (request,response,next){
 
 app.use(passport.initialize());
 app.use(passport.session());
-
-passport.use(new LocalStrategy({
-  usernameField: 'email',
-  passwordField: 'password',
-}, async (username, password, done) => {
-  try {
-    console.log('Attempting to find user with email:', username);
-    const user = await User.findOne({ where: { email: username } });
-    if (!user) {
-      console.log('User not found');
-      return done(null, false, { message: 'User does not exist' });
-    }
-
-    console.log('User found:', user);
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (isMatch) {
-      console.log('Password match');
-      return done(null, user);
-    } else {
-      console.log('Invalid password');
-      return done(null, false, { message: 'Invalid password' });
-    }
-  } catch (error) {
-    console.error('Error during authentication:', error);
-    return done(error);
-  }
-}));
-
 
 app.get('/',async (request,response)=>{
   response.render("index",{
@@ -202,6 +159,38 @@ passport.deserializeUser((id,done)=>{
   })
 });
 
+passport.use('local',new LocalStrategy({
+  usernameField:'email',
+  passwordField:'password',
+},(username,password,done)=>{
+  User.findOne({where:{email:username}})
+  .then(async (user)=>{
+    const result=await bcrypt.compare(password,user.password);
+    if(result){
+      return done(null,user);
+    }
+    else{
+      return done(null,false,{message:"Invalid Password"});
+    }
+  }).catch((error)=>{
+    return done(null,false,{message:"User does not exist"});
+  })
+}));
+
+// passport.use('local', new LocalStrategy(
+//   { usernameField: 'email' },
+//   function(email, password, done) {
+//     User.findOne({ email: email }, function(err, user) {
+//       if (err) { return done(err); }
+
+//       if (!user || !user.validPassword(password)) {
+//         return done(null, false, { message: 'Incorrect email or password.' });
+//       }
+
+//       return done(null, user);
+//     });
+//   }
+// ));
 
 function requireAdmin(req, res, next) {
   if (req.user && req.user.role === 'admin') {
@@ -296,7 +285,7 @@ app.get("/createsession",connectEnsureLogin.ensureLoggedIn(),(request,response)=
   response.render("createsession",{title:"Create Session",csrfToken:request.csrfToken()});
 });
 
-app.post("/addsession", csrfProtection,connectEnsureLogin.ensureLoggedIn(),async (request,response)=>{
+app.post("/addsession",connectEnsureLogin.ensureLoggedIn(),async (request,response)=>{
   const title=request.body.title;
   const date=request.body.date;
   const time=request.body.time;
@@ -589,6 +578,5 @@ app.post("/updatepassword",connectEnsureLogin.ensureLoggedIn(),async (request,re
     response.redirect("/changepassword");
   }
 });
-
 
 module.exports =app;
