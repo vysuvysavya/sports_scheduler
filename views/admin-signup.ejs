@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="<%= csrfToken%>">
+  <title><%= title %></title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-200 min-h-screen flex flex-col items-center justify-start">
+  <%- include("header") %>
+
+  <div class="flex-grow flex items-center justify-center w-full mt-6">
+    <div class="w-full max-w-md p-8 bg-white bg-opacity-90 rounded-lg shadow-lg">
+      <h2 class="text-3xl font-bold mb-4 text-gray-900 text-center">Admin Sign Up</h2>
+      <form action="/adminusers" method="POST" class="space-y-4">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <div>
+          <label for="firstName" class="block text-gray-700">First Name</label>
+          <input type="text" name="firstName" id="firstName" required class="w-full mt-2 p-2 border border-gray-300 rounded">
+        </div>
+        <div>
+          <label for="lastName" class="block text-gray-700">Last Name</label>
+          <input type="text" name="lastName" id="lastName" required class="w-full mt-2 p-2 border border-gray-300 rounded">
+        </div>
+        <div>
+          <label for="email" class="block text-gray-700">Email</label>
+          <input type="email" name="email" id="email" required class="w-full mt-2 p-2 border border-gray-300 rounded">
+        </div>
+        <div>
+          <label for="password" class="block text-gray-700">Password</label>
+          <input type="password" name="password" id="password" required class="w-full mt-2 p-2 border border-gray-300 rounded">
+        </div>
+        <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-800 transition-colors duration-300">Sign Up</button>
+      </form>
+      <p>Already registered? <a href="/signin" class="text-blue-600">Sign in</a></p>
+
+      <%- include("notifications.ejs") %>
+
+    </div>
+  </div>
+  <%- include("footer") %>
+
+</body>
+</html>

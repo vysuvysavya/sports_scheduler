@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="csrf-token" content="<%= csrfToken%>">
+    <meta name="role" content="<%= role%>">
+    <meta name="players" content="<%=playerid%>">
+    <meta name="userid" content="<%=userid%>">
+    <meta name="sport" content="<%=sport%>">
+    <meta name="sportowner" content="<%=sportowner%>">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="./css/styles.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        var role=document.querySelector('meta[name="role"]').getAttribute("content");
+        var players=document.querySelector('meta[name="players"]').getAttribute("content");
+        var userid=document.querySelector('meta[name="userid"]').getAttribute("content");
+        var token=document.querySelector('meta[name="csrf-token"]').getAttribute("content");
+        var sportowner=document.querySelector('meta[name="sportowner"]').getAttribute("content");
+        var sport=document.querySelector('meta[name="sport"]').getAttribute("content");
+        // function deleteTodo(id){
+        //     fetch(`/todos/${id}`,{
+        //         method:"delete",
+        //         headers:{"Content-Type":"application/json"},
+        //         body: JSON.stringify({
+        //             "_csrf":token
+        //         })
+        //     }).then((res)=>{
+        //         if(res.ok){
+        //             window.location.reload();
+        //         }
+        //     }).catch((error)=>console.log(error));
+        // }
+        function removeplayer(sesid,id,play){
+            var playerlist=play.toString().split(",");
+            var playing="";
+            for(var i=0;i<playerlist.length;i++){
+                if(playerlist[i]!=id){
+                    playing+=playerlist[i]+',';
+                }
+            }
+            fetch(`/admin/session/${sesid}`,{
+                method:"put",
+                headers:{"Content-Type":"application/json"},
+                body: JSON.stringify({
+                    player:playing,
+                    "_csrf":token
+                })
+            }).then((res)=>{
+                if(res.ok){
+                    window.location.reload();
+                }
+            }).catch((err)=>console.log(err));
+        }
+        function join(sesid,id,play){
+            play+=','+id;
+            fetch(`/session/${sesid}`,{
+                method:"put",
+                headers:{"Content-Type":"application/json"},
+                body: JSON.stringify({
+                    type:"join",
+                    session:sesid,
+                    player:play,
+                    "_csrf":token
+                })
+            }).then((res)=>{
+                if(res.ok){
+                    window.location.reload();
+                }
+            }).catch((err)=>console.log(err));
+        }
+        function leave(sesid,id,play){
+            var playerlist=play.toString().split(",");
+            var playing="";
+            for(var i=0;i<playerlist.length;i++){
+                if(playerlist[i]!=id){
+                    playing+=playerlist[i]+',';
+                }
+            }
+            fetch(`/session/${sesid}`,{
+                method:"put",
+                headers:{"Content-Type":"application/json"},
+                body: JSON.stringify({
+                    type:"leave",
+                    session:sesid,
+                    player:playing,
+                    "_csrf":token
+                })
+            }).then((res)=>{
+                if(res.ok){
+                    window.location.reload();
+                }
+            }).catch((err)=>console.log(err));
+        }
+        function adminoptions(){
+            if(sportowner!=userid){
+                document.getElementById('creator').style.display='none';
+            }
+            if(sportowner==userid){
+                const deletebtn=document.querySelectorAll("#admindelete");
+                deletebtn.forEach((ele)=>{
+                    ele.classList.remove("hidden");
+                });
+            }
+            const playerlist=players.split(",");
+            var notfound=1;
+            for(var i=0;i<playerlist.length;i++){
+                if(playerlist[i]==userid){
+                    document.getElementById("join").style.display='none';
+                    notfound=0;
+                    break;
+                }
+            }
+            if(notfound==1){
+                document.getElementById("leave").style.display='none';
+            }
+        }
+        function deleteSession(id){
+            fetch(`/session/${id}`,{
+                method:"delete",
+                headers:{"Content-Type":"application/json"},
+                body: JSON.stringify({
+                    "_csrf":token
+                })
+            }).then((res)=>{
+                if(res.ok){
+                    window.location.replace(`/sport/${sport}`);
+                }
+            }).catch((error)=>console.log(error));
+        }
+    </script>
+    <title><%=title%></title>
+</head>
+<body onload="adminoptions()">
+    <div class="grid grid-cols-6">
+        <div class="col-start-3 col-span-2">
+            <div class="inline-flex">
+                <h1 class="p-2 text-4xl" id="name"><%=owner%>'s Session</h1>
+                <div class="p-4 absolute start-2/3" id="creator">
+                    <a class="text-green-600 p-4 underline cursor-pointer" onclick="deleteSession(`<%=session.id%>`)">Delete Session</a>
+                    <a href="/session/<%=session.id%>/edit" class="text-green-600 p-4 underline cursor-pointer">Edit Session</a>
+                </div>
+            </div>
+            <div>
+                <ul class="list-none ml-2">
+                    <li>
+                        Location: <%=session.location%>
+                    </li>
+                    <li>
+                        Date: <%=session.date%>
+                    </li>
+                    <li>
+                        Time: <%=session.time%>
+                    </li>
+                </ul>
+                <h1 class="p-2 text-2xl underline">Players</h1>
+                <ul class="list-none">
+                    <%for(var i=0;i<players.length; i++) {%>
+                    <li class="Todo-Item">
+                        <div class="flex w-fit my-2 px-2 py-1 items-center hover:bg-purple-50 rounded">
+                            <label class="ml-2 text-sm text-gray-600 cursor-pointer"><%= players[i] %></label>
+                            <a href="#" class="ml-2 hidden trash-icon" onclick="removeplayer( <%=session.id%>,<%= playerid[i] %>,<%=playerid%>)" id="admindelete">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                                  </svg>                      
+                            </a>
+                        </div>
+                    </li>
+                    <%} %>
+                </ul>
+                <div class="flex flex-col" id="playerctrl">
+                    <div>
+                        <a class="text-green-600 p-2 underline cursor-pointer" id="join" onclick="join(<%=session.id%>,<%=userid%>,<%=playerid%>)">Join Session</a>
+                    </div>
+                    <div>
+                        <a class="text-green-600 p-2 underline cursor-pointer" id="leave" onclick="leave(<%=session.id%>,<%=userid%>,<%=playerid%>)">Leave Session</a>
+                    </div>
+                </div>
+            </div>
+            <br>
+            <a href='/home' class="text-green-600">Return to home page</a>
+            <%-include("notifications.ejs")%>
+        </div>
+    </div>
+</body>
+</html>

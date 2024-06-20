@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="csrf-token" content="<%= csrfToken%>">
+    <meta name="role" content="<%= role%>">
+    <meta name="userid" content="<%= userid%>">
+    <meta name="owner" content="<%= owner%>">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="./css/styles.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        var token=document.querySelector('meta[name="csrf-token"]').getAttribute("content");
+        var role=document.querySelector('meta[name="role"]').getAttribute("content");
+        var userid=document.querySelector('meta[name="userid"]').getAttribute("content");
+        var owner=document.querySelector('meta[name="owner"]').getAttribute("content");
+        function deleteTodo(id){
+            fetch(`/todos/${id}`,{
+                method:"delete",
+                headers:{"Content-Type":"application/json"},
+                body: JSON.stringify({
+                    "_csrf":token
+                })
+            }).then((res)=>{
+                if(res.ok){
+                    window.location.reload();
+                }
+            }).catch((error)=>console.log(error));
+        }
+        function session(id){
+            window.location.replace("/session/"+id);
+        }
+        function deleteSport(sport){
+            fetch(`/sport/${sport}`,{
+                method:"delete",
+                headers:{"Content-Type":"application/json"},
+                body: JSON.stringify({
+                    "_csrf":token
+                })
+            }).then((res)=>{
+                if(res.ok){
+                    window.location.replace("/home");
+                }
+            }).catch((error)=>console.log(error));
+        }
+        function creatorop(){
+            if(userid!=owner){
+                document.getElementById('creator').style.display='none';
+            }
+        }
+    </script>
+    <title><%=sport%></title>
+</head>
+<body onload="creatorop()">
+    <div class="grid grid-cols-6">
+        <div class="col-start-3 col-span-2">
+            <div class="inline-flex">
+                <h1 class="p-2 text-4xl" id="name"><%=sport%></h1>
+                <div class="p-4 absolute start-2/3" id="creator">
+                    <a class="text-green-600 p-4 underline cursor-pointer" onclick="deleteSport(`<%=sport%>`)">Delete Sport</a>
+                </div>
+            </div>
+            <h1 class="p-2 text-2xl underline">Sessions</h1>
+            <div>
+                <ul class="list-none">
+                    <%if(ses.length==0||ses==null){%>
+                        <li>
+                            <p class="p-2 text-lg">There are no sessions available, wanna create one?</p>
+                        </li>
+                    <%} else{%>
+                    <%for(var i=0;i<ses.length; i++) {%>
+                    <li>
+                        <div class="flex w-fit my-2 px-2 py-1 items-center hover:bg-purple-50 rounded">
+                            <label class="ml-2 text-lg text-gray-600 cursor-pointer flex flex-col" onclick="session(`<%= ses[i].id %>`)">
+                                <span class="underline">Session <%=i+1%>:</span>
+                                <span class="ml-5">Date: <%=ses[i].date%></span>
+                                <span class="ml-5">Time: <%=ses[i].time%></span>
+                                <span class="ml-5">Location: <%=ses[i].location%></span>
+                                <span class="ml-5 text-red-700"><%=ses[i].additional%> slots left!</span>
+                            </label>
+                        </div>
+                    </li>
+                    <%} }%>
+                </ul>
+                <div class="flex flex-col">
+                    <a href='/createsession/<%=sport%>' class="text-green-600 p-2 underline">Create Session</a>
+                    <a href='/sport/<%=sport%>/report' class="text-green-600 p-2 underline">View Report</a>
+                </div>
+            </div>
+            <br>
+            <a href='/home' class="text-green-600">Return to home page</a>
+            <%-include("notifications.ejs")%>
+        </div>
+    </div>
+</body>
+</html>
