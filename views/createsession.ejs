@@ -1,58 +1,57 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="csrf-token" content="<%= csrfToken %>">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="./css/styles.css" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        var token = document.querySelector('meta[name="csrf-token"]').getAttribute("content");
-    </script>
-    <title><%= title %></title>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="csrf-token" content="<%= csrfToken %>">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="./css/styles.css" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    var token = document.querySelector('meta[name="csrf-token"]').getAttribute("content");
+  </script>
+  <title><%= title %></title>
 </head>
 <body class="bg-gradient-to-r from-blue-100 to-blue-200 text-gray-900 flex flex-col min-h-screen">
-    <%- include("header") %>
+  <%- include("header") %>
 
-    <div class="container mx-auto mt-10 flex-grow flex justify-center items-center">
-        <div class="w-full max-w-2xl bg-white shadow-lg rounded-lg p-8">
-            <h1 class="text-4xl text-center text-blue-900 mb-4">Create a new session</h1>
-            <form action="/addsession" method="post">
-                <input type="hidden" name="_csrf" value="<%= csrfToken %>"/>
-                <input type="hidden" name="title" value="<%= sport %>"/> <!-- Ensure sport variable is passed correctly -->
-                <div class="flex flex-col gap-5">
-                    <div class="flex-auto">
-                        <label class="text-gray-700">When will the session be held?</label>
-                        <input type="date" name="date" class="border border-gray-300 rounded text-gray-900 w-full p-3 text-base leading-5" required/>
-                    </div>
-                    <div class="flex-auto">
-                        <label class="text-gray-700">What time will the session be held?</label>
-                        <input type="time" name="time" class="border border-gray-300 rounded text-gray-900 w-full p-3 text-base leading-5" required/>
-                    </div>
-                    <div class="flex-auto">
-                        <label class="text-gray-700">Where will the session be held?</label>
-                        <input type="text" name="location" placeholder="Enter location" class="border border-gray-300 text-gray-900 w-full rounded p-3 text-base"/>
-                    </div>
-                    <div class="flex-auto">
-                        <label class="text-gray-700">Who will be joining the session? (Please enter the email of the players you want to add to your session separated by commas)</label>
-                        <input type="text" name="players" class="border border-gray-300 rounded text-gray-900 w-full p-3 text-base leading-5"/>
-                    </div>
-                    <div class="flex-auto">
-                        <label class="text-gray-700">How many more players do you need?</label>
-                        <input type="number" name="additional" class="border border-gray-300 rounded text-gray-900 w-full p-3 text-base leading-5" required/>
-                    </div>
-                    <div class="flex-auto">
-                        <button type="submit" class="bg-blue-600 hover:bg-blue-800 text-white px-5 py-3 rounded font-medium">Update</button>
-                    </div>
-                </div>
-            </form>
-            <div>
-                <%- include("notifications.ejs") %>
-            </div>
+  <div class="container mx-auto mt-10 flex-grow flex justify-center items-center">
+    <div class="w-full max-w-2xl bg-white shadow-lg rounded-lg p-8">
+      <h1 class="text-4xl text-center text-blue-900 mb-4">Schedule a New Practice Session</h1>
+      <form action="/addsession" method="post">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>"/>
+        <input type="hidden" name="title" value="<%= sport %>"/> <div class="flex flex-col gap-5">
+          <div class="flex-auto">
+            <label class="text-gray-700">When is the Session?</label>
+            <input type="date" name="date" class="border border-gray-300 rounded text-gray-900 w-full p-3 text-base leading-5" required/>
+          </div>
+          <div class="flex-auto">
+            <label class="text-gray-700">What Time is the Session?</label>
+            <input type="time" name="time" class="border border-gray-300 rounded text-gray-900 w-full p-3 text-base leading-5" required/>
+          </div>
+          <div class="flex-auto">
+            <label class="text-gray-700">Where is the Session Held? (VENUE)</label>
+            <input type="text" name="location" placeholder="Enter Location" class="border border-gray-300 text-gray-900 w-full rounded p-3 text-base"/>
+          </div>
+          <div class="flex-auto">
+            <label class="text-gray-700">Who's Invited? (Enter Email Addresses Separated by Commas)</label>
+            <input type="text" name="players" class="border border-gray-300 rounded text-gray-900 w-full p-3 text-base leading-5"/>
+          </div>
+          <div class="flex-auto">
+            <label class="text-gray-700">How Many Additional Players Do You Need?</label>
+            <input type="number" name="additional" class="border border-gray-300 rounded text-gray-900 w-full p-3 text-base leading-5" required/>
+          </div>
+          <div class="flex-auto">
+            <button type="submit" class="bg-blue-600 hover:bg-blue-800 text-white px-5 py-3 rounded font-medium">Schedule Session</button>
+          </div>
         </div>
+      </form>
+      <div>
+        <%- include("notifications.ejs") %>
+      </div>
     </div>
+  </div>
 
-    <%- include("footer") %>
+  <%- include("footer") %>
 </body>
 </html>
