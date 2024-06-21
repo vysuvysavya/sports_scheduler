@@ -25,7 +25,7 @@
                 })
             }).then((res) => {
                 if (res.ok) {
-                    window.location.replace("/home");
+                    window.location.replace("/dashboard");
                 }
             }).catch((error) => console.log(error));
         }
@@ -35,7 +35,7 @@
         }
 
         function creatorop() {
-            if (userid != owner) {
+            if (userid != owner ) {
                 document.getElementById('creator').style.display = 'none';
             }
         }
@@ -44,7 +44,13 @@
 </head>
 <body class="bg-gradient-to-r from-blue-100 to-blue-200 text-gray-900 flex flex-col min-h-screen" onload="creatorop()">
     <%- include("header") %>
-
+    <div >
+        <nav class="bg-gradient-to-r from-blue-500 to-blue-700 p-4 rounded-lg shadow-md flex justify-around">
+            <a href='/createsession/<%= sport %>' class="text-white text-lg">Create Session</a>
+            <a href='/sport/<%= sport %>/report' class="text-white text-lg" id="creator">View Report</a>
+            <a href='/dashboard' class="text-white text-lg">Return to dashboard Page</a>
+        </nav>
+    </div>
     <div class="container mx-auto mt-10 flex-grow flex justify-center items-center">
         <div class="w-full max-w-2xl bg-white shadow-lg rounded-lg p-8">
             <div class="inline-flex w-full justify-between items-center mb-4">
@@ -77,13 +83,7 @@
                     <% } %>
                 </ul>
             </div>
-            <div class="mt-4">
-                <nav class="bg-gradient-to-r from-blue-500 to-blue-700 p-4 rounded-lg shadow-md flex justify-around">
-                    <a href='/createsession/<%= sport %>' class="text-white text-lg">Create Session</a>
-                    <a href='/sport/<%= sport %>/report' class="text-white text-lg">View Report</a>
-                    <a href='/dashboard' class="text-white text-lg">Return to Home Page</a>
-                </nav>
-            </div>
+           
             <%- include("notifications.ejs") %>
         </div>
     </div>
