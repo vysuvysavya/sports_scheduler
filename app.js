@@ -177,28 +177,13 @@ passport.use('local',new LocalStrategy({
   })
 }));
 
-// passport.use('local', new LocalStrategy(
-//   { usernameField: 'email' },
-//   function(email, password, done) {
-//     User.findOne({ email: email }, function(err, user) {
-//       if (err) { return done(err); }
-
-//       if (!user || !user.validPassword(password)) {
-//         return done(null, false, { message: 'Incorrect email or password.' });
-//       }
-
-//       return done(null, user);
-//     });
-//   }
-// ));
-
-function requireAdmin(req, res, next) {
+const requireAdmin = (req, res, next) => {
+  // Assuming you have a way to check if the user is an admin
   if (req.user && req.user.role === 'admin') {
-    return next();
-  } else {
-    res.status(401).json({ message: 'Unauthorized user.' });
+      return next(); // User is authorized, proceed to the route handler
   }
-}
+  res.status(403).json({ message: 'Unauthorized user.' }); // User is not authorized
+};
 
 function requirePlayer(req, res, next) {
   if (req.user && req.user.role === 'player') {
@@ -382,6 +367,7 @@ app.get("/createsession/:sport",connectEnsureLogin.ensureLoggedIn(),async (reque
   response.render("createsession",{title:"Create Session",csrfToken:request.csrfToken(),sport:sport});
 });
 
+
 app.get("/session/:id",connectEnsureLogin.ensureLoggedIn(),async (request,response)=>{
   const id=request.params.id;
   const session=await Sports.findByPk(id);
@@ -521,45 +507,58 @@ app.get("/session/:id/edit",requireAdmin,(request,response)=>{
   response.render("editsession",{title:"Update Session",csrfToken:request.csrfToken(),id:id});
 });
 
-app.get("/session/:id/updatesession",requireAdmin,async (request,response)=>{
-  const date=request.body.date;
-  const time=request.body.time;
-  const location=request.body.location;
-  var players=request.body.players;
-  var addtional=Number(request.body.additional);
-  const acc=await User.findByPk(request.user.id);
-  const username=acc.email;
-  players=username+','+players;
-  const playerlist=players.split(',');
-  var playerlist1="";
-  for(var i=0;i<playerlist.length;i++){
-    const player=await User.findOne({where:{email:playerlist[i]}});
-    if(player){
-      playerlist1=playerlist1+player.id.toString()+',';
+app.post("/session/:id/updatesession", requireAdmin, async (request, response) => {
+  const date = request.body.date;
+  const time = request.body.time;
+  const location = request.body.location;
+  var players = request.body.players;
+  var additional = Number(request.body.additional);
+
+  const acc = await User.findByPk(request.user.id);
+  const username = acc.email;
+  players = username + ',' + players;
+  const playerlist = players.split(',');
+  var playerlist1 = "";
+
+  for (var i = 0; i < playerlist.length; i++) {
+    const player = await User.findOne({ where: { email: playerlist[i] } });
+    if (player) {
+      playerlist1 = playerlist1 + player.id.toString() + ',';
     }
   }
-  if(location===""||location===undefined){
-    request.flash("error","The location of the session cannot be left blank");
-    response.redirect(`/session/${request.params.id}/edit`);
+
+  if (location === "" || location === undefined) {
+    request.flash("error", "The location of the session cannot be left blank");
+    return response.redirect(`/session/${request.params.id}/edit`);
   }
-  if(addtional===""||addtional===undefined){
-    if(players===""||players===undefined){
-      request.flash("error","A session must have atleast two players");
-      response.redirect(`/session/${request.params.id}/edit`);
+
+  if (additional === "" || additional === undefined) {
+    if (players === "" || players === undefined) {
+      request.flash("error", "A session must have at least two players");
+      return response.redirect(`/session/${request.params.id}/edit`);
     }
   }
-  try{
-    const session=await Sports.update({date:date,time:time,location:location,players:playerlist1,additional:addtional});
-    console.log(addtional);
-    var usersess=acc.sessions;
-    usersess+=','+session.id;
-    await acc.update({sessions:usersess});
-    response.redirect("/dashboard");
-  }
-  catch(error){
-    console.log(error);
+
+  try {
+    const session = await Sports.update(
+      { date: date, time: time, location: location, players: playerlist1, additional: additional },
+      { where: { id: request.params.id } } // <-- Specify where condition here
+    );
+
+    console.log(additional);
+
+    var usersess = acc.sessions;
+    usersess += ',' + session.id;
+
+    await acc.update({ sessions: usersess });
+
+    return response.redirect("/dashboard");
+  } catch (error) {
+    console.error(error);
+    return response.status(500).send("Internal Server Error");
   }
 });
+
 
 app.get("/changepassword",connectEnsureLogin.ensureLoggedIn(),(request,response)=>{
   response.render("changepassword",{csrfToken:request.csrfToken()});

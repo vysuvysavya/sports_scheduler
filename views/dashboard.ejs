@@ -22,13 +22,13 @@
         }
 
         function session(id) {
-            window.location.replace("/session/" + id);
+            window.location.replace(`/session/${id}`);
         }
     </script>
     <title>Sports Scheduler</title>
 </head>
 <body onload="control()" class="bg-gradient-to-r from-blue-100 to-blue-200 text-gray-900 flex flex-col min-h-screen">
-    <%- include("header") %>
+    <% include("header") %>
 
     <!-- Navbar -->
     <nav class="bg-gradient-to-r from-blue-500 to-green-500 p-4">
@@ -36,7 +36,6 @@
             <div class="space-x-4">
                 <a href="/changepassword" class="text-white hover:underline">Change Password</a>
                 <a href="/createsport" class="text-white hover:underline" id="admin-controls">Create Sport</a>
-                <a href="/reports" class="text-white hover:underline" id="admin-controls">Reports</a>
                 <form action="/signout" method="get" class="inline">
                     <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                     <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg">Sign Out</button>
@@ -61,14 +60,14 @@
                         <% for (var i = 0; i < usersessions.length; i++) { %>
                             <li>
                                 <div class="flex my-2 p-4 items-center hover:bg-gray-100 rounded-lg cursor-pointer" onclick="session('<%= usersessions[i].id %>')">
-                                    <label class="ml-2 text-lg text-gray-600 cursor-pointer flex flex-col" onclick="session(`<%= usersessions[i].id %>`)">
-                                    <div class="ml-2 text-lg text-gray-700">
-                                        <span class="font-semibold">Session <%= i + 1 %>:</span>
-                                        <span class="ml-5">Date: <%= usersessions[i].date %></span>
-                                        <span class="ml-5">Time: <%= usersessions[i].time %></span>
-                                        <span class="ml-5">Location: <%= usersessions[i].location %></span>
-                                        <span class="ml-5 text-red-600"><%= usersessions[i].additional %> slots left!</span>
-                                    </div>
+                                    <label class="ml-2 text-lg text-gray-600 cursor-pointer" onclick="session('<%= usersessions[i].id %>')">
+                                        <div class="ml-2 text-lg text-gray-700">
+                                            <span class="font-semibold">Session <%= i + 1 %>:</span><br>
+                                            <span class="ml-5">Date: <%= usersessions[i].date %></span><br>
+                                            <span class="ml-5">Time: <%= usersessions[i].time %></span><br>
+                                            <span class="ml-5">Location: <%= usersessions[i].location %></span><br>
+                                            <span class="ml-5 text-red-600"><%= usersessions[i].additional %> slots left!</span>
+                                        </div>
                                     </label>
                                 </div>
                             </li>
@@ -83,30 +82,19 @@
                 <ul class="space-y-4">
                     <% for (var i = 0; i < sportslist.length; i++) { %>
                         <li>
-                            <div class="bg-gray-100 p-4 rounded-lg shadow-md">
-                                <h3 class="text-xl font-semibold text-gray-800 mb-2"><%= sportslist[i].title %></h3>
-                                <ul class="space-y-2">
-                                    <% if (sportslist[i].sessions && sportslist[i].sessions.length > 0) { %>
-                                        <% for (var j = 0; j < sportslist[i].sessions.length; j++) { %>
-                                            <li class="flex justify-between items-center hover:bg-gray-200 p-2 rounded-lg cursor-pointer" onclick="session('<%= sportslist[i].sessions[j].id %>')">
-                                                <span class="text-gray-700"><%= sportslist[i].sessions[j].date %> - <%= sportslist[i].sessions[j].time %></span>
-                                                <span class="text-gray-500"><%= sportslist[i].sessions[j].location %></span>
-                                            </li>
-                                        <% } %>
-                                    <% } else { %>
-                                        <li class="text-gray-500">No sessions available for this sport</li>
-                                    <% } %>
-                                </ul>
+                            <div class="flex w-fit my-2 px-2 py-1 items-center hover:bg-purple-50 rounded">
+                                <label class="ml-2 text-lg text-gray-600 cursor-pointer" onclick="sport('<%= sportslist[i].title %>')"><%= sportslist[i].title %></label>
                             </div>
                         </li>
                     <% } %>
                 </ul>
             </div>
+            <% include("notifications.ejs") %>
+
         </div>
     </div>
 
-    <%- include("notifications.ejs") %>
-    <%- include("footer") %>
+    <% include("footer") %>
 
 </body>
 </html>
