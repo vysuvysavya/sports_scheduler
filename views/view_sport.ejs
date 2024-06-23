@@ -48,7 +48,7 @@
         <nav class="bg-gradient-to-r from-blue-500 to-blue-700 p-4 rounded-lg shadow-md flex justify-around">
             <a href='/createsession/<%= sport %>' class="text-white text-lg">Create Session</a>
             <a href='/sport/<%= sport %>/report' class="text-white text-lg" id="creator">View Report</a>
-            <a href='/dashboard' class="text-white text-lg">Return to dashboard Page</a>
+            <a href='/dashboard' class="text-white text-lg">Return to dashboard</a>
         </nav>
     </div>
     <div class="container mx-auto mt-10 flex-grow flex justify-center items-center">
@@ -74,7 +74,7 @@
                                         <span class="underline text-blue-900">Session <%= i + 1 %>:</span>
                                         <span class="ml-5">Date: <%= ses[i].date %></span>
                                         <span class="ml-5">Time: <%= ses[i].time %></span>
-                                        <span class="ml-5">Location: <%= ses[i].location %></span>
+                                        <span class="ml-5">Venue: <%= ses[i].location %></span>
                                         <span class="ml-5 text-red-700"><%= ses[i].additional %> slots left!</span>
                                     </div>
                                 </div>

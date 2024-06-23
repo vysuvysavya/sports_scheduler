@@ -22,15 +22,15 @@
                 <input type="hidden" name="_csrf" value="<%= csrfToken %>"/>
                 <div class="flex flex-col gap-5">
                     <div class="flex-auto">
-                        <label class="text-gray-700">What is the name of the sport?</label>
-                        <input type="text" name="sport" id = 'sport' class="border border-gray-300 rounded text-gray-900 w-full p-2 text-sm leading-4"/>
+                        <label class="text-gray-700">Enter the name of the sport you wanted to create?</label>
+                        <input type="text" name="sport" id="sport" class="border border-gray-300 rounded text-gray-900 w-full p-2 text-sm leading-4" required/>
                     </div>
                     <div class="flex-auto">
                         <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white px-5 py-2 rounded font-medium">Create</button>
                     </div>
-                    
                 </div>
             </form>
+            
             <div>
                 <%- include("notifications.ejs") %>
             </div>

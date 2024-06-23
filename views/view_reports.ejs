@@ -17,7 +17,7 @@
 
     <nav class="bg-blue-600 text-white p-4 flex justify-between">
         <div class="flex space-x-4">
-            <a href='/dashboard' class="text-lg">Return to home page</a>
+            <a href='/dashboard' class="text-lg">Return to dashboard</a>
         </div>
     </nav>
 
@@ -30,7 +30,7 @@
                 <ul class="list-none">
                     <% if (pastses.length === 0 || !pastses) { %>
                         <li>
-                            <p class="text-lg p-2">There are no sessions available</p>
+                            <p class="text-lg p-2">No sessions available</p>
                         </li>
                     <% } else { %>
                         <% for (let i = 0; i < pastses.length; i++) { %>
@@ -54,7 +54,7 @@
                 <ul class="list-none">
                     <% if (upses.length === 0 || !upses) { %>
                         <li>
-                            <p class="text-lg p-2">There are no sessions available, wanna create one?</p>
+                            <p class="text-lg p-2">No sessions available</p>
                         </li>
                     <% } else { %>
                         <% for (let i = 0; i < upses.length; i++) { %>
@@ -64,7 +64,7 @@
                                         <span class="underline">Session <%= i + 1 %>:</span>
                                         <span class="ml-5">Date: <%= upses[i].date %></span>
                                         <span class="ml-5">Time: <%= upses[i].time %></span>
-                                        <span class="ml-5">Location: <%= upses[i].location %></span>
+                                        <span class="ml-5">Venue: <%= upses[i].location %></span>
                                     </label>
                                 </div>
                             </li>

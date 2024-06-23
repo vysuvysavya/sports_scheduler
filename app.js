@@ -65,11 +65,11 @@ app.get('/signup',(request,response)=>{
 });
 
 app.get("/signup/admin",(request,response)=>{
-  response.render("admin-signup",{title:"Admin-Signup",csrfToken:request.csrfToken()});
+  response.render("signup_admin",{title:"Admin signup",csrfToken:request.csrfToken()});
 });
 
 app.get("/signup/player",(request,response)=>{
-  response.render("player-signup",{title:"Player signup",csrfToken:request.csrfToken()});
+  response.render("signup_player",{title:"Player signup",csrfToken:request.csrfToken()});
 });
 
 app.post("/adminusers",async (request,response)=>{
@@ -259,11 +259,11 @@ app.get("/signin",(request,response)=>{
 });
 
 app.get("/signin/admin",(request,response)=>{
-  response.render("admin-signin",{title:"Admin Signin",csrfToken:request.csrfToken()});
+  response.render("login_admin",{title:"Admin Signin",csrfToken:request.csrfToken()});
 });
 
 app.get("/signin/player",(request,response)=>{
-  response.render("player-signin",{title:"Player Signin",csrfToken:request.csrfToken()});
+  response.render("login_player",{title:"Player Signin",csrfToken:request.csrfToken()});
 });
 
 app.get("/createsession",connectEnsureLogin.ensureLoggedIn(),(request,response)=>{
@@ -311,60 +311,72 @@ app.post("/addsession",connectEnsureLogin.ensureLoggedIn(),async (request,respon
   }
 });
 
-app.get("/createsport",requireAdmin,(request,response)=>{
+app.get("/createsport",requireAdmin,async(request,response)=>{
   response.render("createsport",{title:"Create Sport",csrfToken:request.csrfToken()});
 });
 
-app.post("/addsport",requireAdmin,async (request,response)=>{
-  const title=request.body.title;
-  if(title===""){
-    request.flash("error","Name of the sport cannot be left blank");
-    return response.redirect("/createsport");
-  }
-  try{
-    await Sportname.create({title:title,userId:request.user.id});
-    response.redirect("/dashboard");
-  }
-  catch(error){
-    request.flash("error","Sport already exists.");
-    response.redirect("/dashboard");
+app.post("/addsport", connectEnsureLogin.ensureLoggedIn(), async (req, res) => {
+  try {
+    const { sport } = req.body;
+
+    if (!sport) {
+      return res.status(400).send("Sport name is required");
+    }
+
+    const newSport = await Sportname.create({ title: sport, userId: req.user.id });
+    
+    // Redirect to dashboard with a success message
+    res.redirect(`/dashboard?sportAdded=${encodeURIComponent(newSport.title)}`);
+  } catch (error) {
+    console.log(error);
+    res.status(500).send("Internal Server Error");
   }
 });
 
-app.get("/sport/:sport",connectEnsureLogin.ensureLoggedIn(),async (request,response)=>{
-  const acc=await User.findByPk(request.user.id);
-  const role=acc.role;
-  const sport=request.params.sport;
-  const sessions= await Sports.findAll({where:{title:sport}});
-  const upsessions=[];
-  for(var i=0;i<sessions.length;i++){
-      const t=new Date().toISOString().split("T");
-      const date=t[0];
-      const time=t[1].substring(0,5);
-      const gtime=sessions[i].time;
-      if(sessions[i].date==date){
-        if(gtime>time){
-          upsessions.push(sessions[i]);
-        }
+app.get("/sport/:sport", connectEnsureLogin.ensureLoggedIn(), async (request, response) => {
+  try {
+    const acc = await User.findByPk(request.user.id);
+    const role = acc.role;
+    const sport = request.params.sport;
+    
+    const sessions = await Sports.findAll({ where: { title: sport } });
+    const upsessions = [];
+    
+    const now = new Date();
+    const currentDate = now.toISOString().split("T")[0];
+    const currentTime = now.toTimeString().substring(0, 5);
+
+    for (const session of sessions) {
+      if (session.date > currentDate || (session.date === currentDate && session.time > currentTime)) {
+        upsessions.push(session);
       }
-      else if(sessions[i].date>date){
-        upsessions.push(sessions[i]);
-      }
-  }
-  try{
-    const all=await Sportname.findAll({where:{title:sport}});
-    console.log(all);
-    const sports=all[0];
-    response.render("sport",{sport:sport,csrfToken:request.csrfToken(),role:role,ses:upsessions,userid:request.user.id,owner:sports.userId});
-  }
-  catch(error){
+    }
+
+    const all = await Sportname.findAll({ where: { title: sport } });
+    if (all.length === 0) {
+      // Handle the case where the sport does not exist
+      return response.status(404).send("Sport not found");
+    }
+
+    const sports = all[0];
+    response.render("view_sport", {
+      sport: sport,
+      csrfToken: request.csrfToken(),
+      role: role,
+      ses: upsessions,
+      userid: request.user.id,
+      owner: sports.userId
+    });
+  } catch (error) {
     console.log(error);
+    response.status(500).send("Internal Server Error");
   }
 });
+
 
 app.get("/createsession/:sport",connectEnsureLogin.ensureLoggedIn(),async (request,response)=>{
   const sport=request.params.sport;
-  response.render("createsession",{title:"Create Session",csrfToken:request.csrfToken(),sport:sport});
+  response.render("session_creation",{title:"Create Session",csrfToken:request.csrfToken(),sport:sport});
 });
 
 
@@ -499,12 +511,12 @@ app.get("/sport/:sport/report",requireAdmin,async (request,response)=>{
         pastsessions.push(sessions[i]);
       }
   }
-  response.render("reports",{csrfToken:request.csrfToken(),pastses:pastsessions,upses:upsessions,sport:request.params.sport});
+  response.render("view_reports",{csrfToken:request.csrfToken(),pastses:pastsessions,upses:upsessions,sport:request.params.sport});
 });
 
 app.get("/session/:id/edit",requireAdmin,(request,response)=>{
   const id=request.params.id;
-  response.render("editsession",{title:"Update Session",csrfToken:request.csrfToken(),id:id});
+  response.render("session_edit",{title:"Update Session",csrfToken:request.csrfToken(),id:id});
 });
 
 app.post("/session/:id/updatesession", requireAdmin, async (request, response) => {
@@ -561,7 +573,7 @@ app.post("/session/:id/updatesession", requireAdmin, async (request, response) =
 
 
 app.get("/changepassword",connectEnsureLogin.ensureLoggedIn(),(request,response)=>{
-  response.render("changepassword",{csrfToken:request.csrfToken()});
+  response.render("password_modification",{csrfToken:request.csrfToken()});
 });
 
 app.post("/updatepassword",connectEnsureLogin.ensureLoggedIn(),async (request,response)=>{
