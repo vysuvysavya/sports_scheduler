@@ -11,8 +11,7 @@ var session=require("express-session");
 var LocalStrategy=require("passport-local");
 var bcrypt=require("bcrypt");
 const flash=require("connect-flash");
-const { request } = require("http");
-const { resourceUsage } = require("process");
+
 app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser("todo application"));
@@ -87,7 +86,7 @@ app.post("/adminusers",async (request,response)=>{
     return response.redirect("/signup/admin");
   }
   try{
-    const user=await User.create({
+    const user= await User.create({
       firstName: request.body.firstName,
       lastName:request.body.lastName,
       email:request.body.email,
@@ -354,7 +353,6 @@ app.get("/sport/:sport", connectEnsureLogin.ensureLoggedIn(), async (request, re
 
     const all = await Sportname.findAll({ where: { title: sport } });
     if (all.length === 0) {
-      // Handle the case where the sport does not exist
       return response.status(404).send("Sport not found");
     }
 
